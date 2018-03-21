@@ -26,7 +26,7 @@ namespace {
     inline
     thread_info get_thread_info() {
         static std::atomic<unsigned> num_threads(0);
-        thread_local unsigned thread_id = ++num_threads;
+        thread_local unsigned thread_id = num_threads++;
         return {thread_id, num_threads};
     };
 
@@ -236,6 +236,9 @@ double sort_profile_tree(profile_node& n) {
 }
 
 profile profiler::results() const {
+    using std::chrono::duration_cast;
+    using std::chrono::nanoseconds;
+
     const auto nregions = region_names_.size();
 
     profile p;
@@ -248,7 +251,9 @@ profile profiler::results() const {
         auto& r = recorders_[tid];
         auto& accumulators = r.accumulators();
         for (auto i=0u; i<accumulators.size(); ++i) {
-            p.times[i]  += accumulators[i].time.count();
+            // convert counter from tics to nanoseconds
+            auto time_in_ns = duration_cast<nanoseconds>(accumulators[i].time).count();
+            p.times[i]  += time_in_ns * 1e-9; // convert to seconds
             p.counts[i] += accumulators[i].count;
         }
     }
@@ -268,7 +273,7 @@ profile_node make_profile_tree(const profile& p) {
     }
 
     // Build a tree description of the regions and sub-regions in the profile.
-    profile_node tree("root");
+    profile_node tree("total");
     for (auto idx=0u; idx<p.names.size(); ++idx) {
         profile_node* node = &tree;
         const auto depth  = names[idx].size();
@@ -288,6 +293,7 @@ profile_node make_profile_tree(const profile& p) {
                 node = &(*child);
             }
         }
+
         node->children.emplace_back(names[idx].back(), p.times[idx], p.counts[idx]);
     }
     sort_profile_tree(tree);
@@ -317,12 +323,14 @@ void print(std::ostream& o,
     if (proportion<thresh) return;
 
     if (n.count==profile_node::npos) {
-        snprintf(buf, sizeof(buf)/sizeof(char), "_p_ %-20s%12s%12.3f%12.3f%8.1f",
-               name.c_str(), "-", float(n.time), per_thread_time, proportion);
+        snprintf(buf, sizeof(buf)/sizeof(char),
+                "_p_ %-20s%12s%12.3f%12.3f%8.1f",
+                name.c_str(), "-", n.time, per_thread_time, proportion);
     }
     else {
-        snprintf(buf, sizeof(buf)/sizeof(char), "_p_ %-20s%12lu%12.3f%12.3f%8.1f",
-               name.c_str(), n.count, float(n.time), per_thread_time, proportion);
+        snprintf(buf, sizeof(buf)/sizeof(char),
+                "_p_ %-20s%12lu%12.3f%12.3f%8.1f",
+                name.c_str(), n.count, n.time, per_thread_time, proportion);
     }
     o << "\n" << buf;
 
@@ -355,7 +363,9 @@ std::ostream& operator<<(std::ostream& o, const profile& prof) {
 
     auto tree = make_profile_tree(prof);
 
-    snprintf(buf, sizeof(buf)/sizeof(char), "_p_ %-20s%12s%12s%12s%8s", "REGION", "CALLS", "THREAD", "WALL", "\%");
+    snprintf(buf, sizeof(buf)/sizeof(char),
+            "_p_ %-20s%12s%12s%12s%8s",
+            "REGION", "CALLS", "THREAD", "WALL", "\%");
     o << buf;
     print(o, tree, tree.time, prof.num_threads, 0, "");
     return o;

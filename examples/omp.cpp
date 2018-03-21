@@ -8,27 +8,45 @@
 int main() {
     std::cout << "-----------------------\n"
               << "OpenMP semiprof example\n"
-              << "-----------------------\n\n"
-              << "Using " << omp_get_max_threads() << " threads\n";
+              << "Using " << omp_get_max_threads() << " threads\n"
+              << "-----------------------\n\n";
 
 
-    const size_t n = 1<<26;
+    const size_t n = 1<<28;
 
-    std::vector<int> a(n, 1);
-    std::vector<int> b(n, 2);
-    std::vector<int> c(n, 3);
-
-    size_t i = 0;
-
-    PE(add);
-    for (i=0u; i<n; ++i) {
-        c[i] += a[i] + b[i];
+    std::vector<double> a(n);
+    std::vector<double> b(n);
+    std::vector<double> c(n);
+    #pragma omp parallel for
+    for (auto i=0lu; i<n; ++i) {
+        a[i] = 1;
+        b[i] = 2;
+        c[i] = 3;
     }
-    PL();
+    a[n/2] = 0;
+    a[n/4] = 2;
 
-    std::cout << semiprof::profiler_summary() << "\n";
+    double sum = 0;
+    #pragma omp parallel
+    {
+        PE(add);
+        #pragma omp for
+        for (auto i=0lu; i<n; ++i) {
+            c[i] += a[i] + b[i];
+        }
+        PL();
 
-    std::cout << c.back() << "\n";
+        PE(reduce);
+        #pragma omp for reduction(+:sum)
+        for (auto i=0lu; i<n; ++i) {
+            sum += c[i];
+        }
+        PL();
+    }
+
+    std::cout << semiprof::profiler_summary() << "\n\n";
+
+    std::cout << "result : " << sum << "\n";
 
     return 0;
 }

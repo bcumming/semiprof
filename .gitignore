@@ -1,0 +1,10 @@
+
+build
+
+.*.swp
+.*.swn
+.*.swo
+.*.swq
+
+*.o
+*.a
