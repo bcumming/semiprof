@@ -16,8 +16,6 @@ using duration_type = time_point_type::duration;
 
 #ifdef SEMIPROF
 namespace {
-    unsigned n_threads = 100;
-
     struct thread_info {
         unsigned thread_id;
         unsigned num_threads;
@@ -227,7 +225,6 @@ double sort_profile_tree(profile_node& n) {
     }
 
     // sort the children in descending order of time taken
-    //util::sort_by(n.children, [](const profile_node& n){return -n.time;});
     std::sort(
         n.children.begin(), n.children.end(),
         [](const profile_node& l, const profile_node& r){return r.time<l.time;});
