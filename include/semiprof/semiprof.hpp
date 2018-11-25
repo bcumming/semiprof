@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <functional>
 #include <ostream>
 #include <unordered_map>
 #include <vector>
@@ -25,9 +26,14 @@ struct profile {
     std::size_t num_threads;
 };
 
+using thread_id_fn = std::function<unsigned(void)>;
+
 void profiler_clear();
 void profiler_enter(std::size_t region_id);
 void profiler_leave();
+void profiler_init();
+void profiler_init(unsigned nthreads);
+void profiler_init(unsigned nthreads, thread_id_fn);
 
 profile profiler_summary();
 std::size_t profiler_region_id(const char* name);

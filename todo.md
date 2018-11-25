@@ -25,6 +25,9 @@ Other nice to have things:
 * docs
 * examples
 * cmake
+* improve exception handling:
+    - currently throws `std::runtime_error`, which borks things if thrown inside a thread.
+    - Record that an error occurred, and report it when the user queries the profiler for timings outside a threaded region?
 
 ### nice to have
 

@@ -8,6 +8,8 @@
 
 #include <semiprof/semiprof.hpp>
 
+#include <iostream>
+
 namespace semiprof {
 
 using clock_type = std::chrono::high_resolution_clock;
@@ -23,10 +25,16 @@ namespace {
 
     inline
     thread_info get_thread_info() {
+        std::cout << "CALLING \n";
         static std::atomic<unsigned> num_threads(0);
         thread_local unsigned thread_id = num_threads++;
         return {thread_id, num_threads};
     };
+
+    inline
+    unsigned thread_id() {
+        return get_thread_info().thread_id;
+    }
 
     // Check whether a string describes a valid profiler region name.
     bool is_valid_region_string(const std::string& s) {
@@ -110,9 +118,14 @@ class profiler {
     // Used to protect name_index_, which is shared between all threads.
     std::mutex mutex_;
 
-public:
-    profiler(unsigned max_threads=256);
+    bool initialized_ = false;
+    thread_id_fn get_thread_id;
+    unsigned num_threads_ = -1; // marks that no specific thread count has been set.
 
+public:
+    profiler() = default;
+
+    void init(unsigned nthreads, thread_id_fn tid);
     void enter(region_id_type index);
     void enter(const char* name);
     void leave();
@@ -179,21 +192,30 @@ void recorder::clear() {
 
 // profiler implementation
 
-profiler::profiler(unsigned max_threads) {
-    recorders_.resize(max_threads);
+void profiler::init(unsigned nthreads, thread_id_fn tid) {
+    num_threads_ = nthreads;
+    recorders_.resize(nthreads==unsigned(-1)? 256: nthreads);
+    get_thread_id = std::move(tid);
+    initialized_ = true;
 }
 
 void profiler::enter(region_id_type index) {
-    recorders_[get_thread_info().thread_id].enter(index);
+    if (!initialized_) return;
+    std::lock_guard<std::mutex> _(mutex_);
+    recorders_[get_thread_id()].enter(index);
 }
 
 void profiler::enter(const char* name) {
+    if (!initialized_) return;
+    std::lock_guard<std::mutex> _(mutex_);
     const auto index = region_index(name);
-    recorders_[get_thread_info().thread_id].enter(index);
+    recorders_[get_thread_id()].enter(index);
 }
 
 void profiler::leave() {
-    recorders_[get_thread_info().thread_id].leave();
+    if (!initialized_) return;
+    std::lock_guard<std::mutex> _(mutex_);
+    recorders_[get_thread_id()].leave();
 }
 
 region_id_type profiler::region_index(const char* name) {
@@ -243,7 +265,13 @@ profile profiler::results() const {
 
     p.times = std::vector<double>(nregions);
     p.counts = std::vector<region_id_type>(nregions);
-    const auto num_threads = get_thread_info().num_threads;
+    //const auto num_threads = get_thread_info().num_threads;
+    unsigned num_threads = num_threads_;
+    if (num_threads==unsigned(-1)) {
+        auto it = std::find_if(recorders_.begin(), recorders_.end(),
+                [](const recorder& r){return r.accumulators().size()==0;});
+        num_threads = std::distance(recorders_.begin(), it);
+    }
     for (auto tid=0u; tid<num_threads; ++tid) {
         auto& r = recorders_[tid];
         auto& accumulators = r.accumulators();
@@ -339,6 +367,18 @@ void print(std::ostream& o,
 // convenience functions for instrumenting code.
 //
 
+void profiler_init() {
+    profiler::get_global_profiler().init(-1, thread_id);
+}
+
+void profiler_init(unsigned nthreads) {
+    profiler::get_global_profiler().init(nthreads, thread_id);
+}
+
+void profiler_init(unsigned nthreads, thread_id_fn tid) {
+    profiler::get_global_profiler().init(nthreads, std::move(tid));
+}
+
 void profiler_leave() {
     profiler::get_global_profiler().leave();
 }
@@ -374,6 +414,9 @@ profile profiler_summary() {
 
 #else
 
+void profiler_init() {}
+void profiler_init(unsigned) {}
+void profiler_init(unsigned, thread_id_fn) {}
 void profiler_leave() {}
 void profiler_enter(region_id_type) {}
 profile profiler_summary();

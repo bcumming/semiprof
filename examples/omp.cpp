@@ -12,7 +12,9 @@ int main() {
               << "-----------------------\n\n";
 
 
-    const size_t n = 1<<28;
+    const size_t n = 1<<24;
+
+    semiprof::profiler_init(omp_get_max_threads(), omp_get_thread_num);
 
     std::vector<double> a(n);
     std::vector<double> b(n);
@@ -26,27 +28,32 @@ int main() {
     a[n/2] = 0;
     a[n/4] = 2;
 
-    double sum = 0;
-    #pragma omp parallel
-    {
-        PE(add);
-        #pragma omp for
-        for (auto i=0lu; i<n; ++i) {
-            c[i] += a[i] + b[i];
-        }
-        PL();
+    try {
+        double sum = 0;
+        #pragma omp parallel
+        {
+            PE(add);
+            #pragma omp for
+            for (auto i=0lu; i<n; ++i) {
+                c[i] += a[i] + b[i];
+            }
+            PL();
 
-        PE(reduce);
-        #pragma omp for reduction(+:sum)
-        for (auto i=0lu; i<n; ++i) {
-            sum += c[i];
+            PE(reduce);
+            #pragma omp for reduction(+:sum)
+            for (auto i=0lu; i<n; ++i) {
+                sum += c[i];
+            }
+            PL();
         }
-        PL();
+
+        std::cout << semiprof::profiler_summary() << "\n\n";
+
+        std::cout << "result : " << sum << "\n";
     }
-
-    std::cout << semiprof::profiler_summary() << "\n\n";
-
-    std::cout << "result : " << sum << "\n";
+    catch (std::exception e) {
+        std::cout << "error: " << e.what() << "\n";
+    }
 
     return 0;
 }
