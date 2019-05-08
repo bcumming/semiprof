@@ -3,7 +3,7 @@
 
 #include <omp.h>
 
-#include <semiprof/semiprof.hpp>
+#include <semiprof.hpp>
 
 int main() {
     std::cout << "-----------------------\n"

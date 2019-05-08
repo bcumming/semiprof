@@ -45,11 +45,13 @@ std::ostream& operator<<(std::ostream&, const profile&);
 
     // leave a profling region
     #define PL semiprof::profiler_leave
+    #define PP() std::cout << semiprof::profiler_summary() << "\n"
 
 #else
 
     #define PE(name)
     #define PL()
+    #define PP()
 
 #endif
 
