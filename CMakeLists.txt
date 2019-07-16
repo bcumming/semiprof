@@ -17,25 +17,27 @@ if(SEMIPROF_NOT_SUBPROJECT)
 endif()
 
 if(SEMIPROF_NOT_SUBPROJECT)
+  include(CMakePackageConfigHelpers)
+  include(GNUInstallDirs)
+
   install(TARGETS semiprof
           EXPORT semiprof_targets 
-          LIBRARY DESTINATION lib
-          INCLUDES DESTINATION include)
+          LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+          INCLUDES DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
 
   install(EXPORT semiprof_targets
           FILE semiprofConfig.cmake
           NAMESPACE semiprof::
-          DESTINATION lib/cmake/semiprof)
+          DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/semiprof")
 
   install(FILES "${semiprof_SOURCE_DIR}/include/semiprof/semiprof.hpp"
-          DESTINATION include)
+          DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
 
-  include(CMakePackageConfigHelpers)
   write_basic_package_version_file(
     "${semiprof_BINARY_DIR}/semiprofConfigVersion.cmake"
     VERSION ${semiprof_VERSION}
     COMPATIBILITY SameMajorVersion)
 
   install(FILES "${semiprof_BINARY_DIR}/semiprofConfigVersion.cmake"
-          DESTINATION lib/cmake/semiprof)
+          DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/semiprof")
 endif()
