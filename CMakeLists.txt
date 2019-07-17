@@ -23,6 +23,7 @@ if(SEMIPROF_NOT_SUBPROJECT)
   install(TARGETS semiprof
           EXPORT semiprof_targets 
           LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+          ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
           INCLUDES DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
 
   install(EXPORT semiprof_targets
