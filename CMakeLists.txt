@@ -16,29 +16,27 @@ if(SEMIPROF_NOT_SUBPROJECT)
   add_subdirectory(examples)
 endif()
 
-if(SEMIPROF_NOT_SUBPROJECT)
-  include(CMakePackageConfigHelpers)
-  include(GNUInstallDirs)
+include(CMakePackageConfigHelpers)
+include(GNUInstallDirs)
 
-  install(TARGETS semiprof
-          EXPORT semiprof_targets 
-          LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-          ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-          INCLUDES DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
+install(TARGETS semiprof
+        EXPORT semiprof_targets 
+        LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+        ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+        INCLUDES DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
 
-  install(EXPORT semiprof_targets
-          FILE semiprofConfig.cmake
-          NAMESPACE semiprof::
-          DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/semiprof")
+install(EXPORT semiprof_targets
+        FILE semiprofConfig.cmake
+        NAMESPACE semiprof::
+        DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/semiprof")
 
-  install(FILES "${semiprof_SOURCE_DIR}/include/semiprof/semiprof.hpp"
-          DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
+install(FILES "${semiprof_SOURCE_DIR}/include/semiprof/semiprof.hpp"
+        DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
 
-  write_basic_package_version_file(
-    "${semiprof_BINARY_DIR}/semiprofConfigVersion.cmake"
-    VERSION ${semiprof_VERSION}
-    COMPATIBILITY SameMajorVersion)
+write_basic_package_version_file(
+  "${semiprof_BINARY_DIR}/semiprofConfigVersion.cmake"
+  VERSION ${semiprof_VERSION}
+  COMPATIBILITY SameMajorVersion)
 
-  install(FILES "${semiprof_BINARY_DIR}/semiprofConfigVersion.cmake"
-          DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/semiprof")
-endif()
+install(FILES "${semiprof_BINARY_DIR}/semiprofConfigVersion.cmake"
+        DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/semiprof")
