@@ -47,11 +47,15 @@ std::ostream& operator<<(std::ostream&, const profile&);
     #define PL semiprof::profiler_leave
     #define PP() std::cout << semiprof::profiler_summary() << "\n"
 
+    // clears the profiler (counts and timings)
+    #define PC() semiprof::profiler_clear()
+
 #else
 
     #define PE(name)
     #define PL()
     #define PP()
+    #define PC()
 
 #endif
 
