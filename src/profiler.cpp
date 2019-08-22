@@ -115,6 +115,7 @@ class profiler {
 public:
     profiler(unsigned max_threads=256);
 
+    void clear();
     void enter(region_id_type index);
     void enter(const char* name);
     void leave();
@@ -196,6 +197,10 @@ void profiler::enter(const char* name) {
 
 void profiler::leave() {
     recorders_[get_thread_info().thread_id].leave();
+}
+
+void profiler::clear() {
+    recorders_[get_thread_info().thread_id].clear();
 }
 
 region_id_type profiler::region_index(const char* name) {
@@ -357,6 +362,10 @@ void profiler_enter(region_id_type region_id) {
     profiler::get_global_profiler().enter(region_id);
 }
 
+void profiler_clear() {
+    profiler::get_global_profiler().clear();
+}
+
 // Print profiler statistics to an ostream
 std::ostream& operator<<(std::ostream& o, const profile& prof) {
     char buf[80];
@@ -379,6 +388,7 @@ profile profiler_summary() {
 
 void profiler_leave() {}
 void profiler_enter(region_id_type) {}
+void profiler_clear() {}
 profile profiler_summary();
 profile profiler_summary() {return profile();}
 region_id_type profiler_region_id(const char*) {return 0;}
