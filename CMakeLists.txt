@@ -10,11 +10,15 @@ option(SEMIPROF_WITH_INSTALL "Enable installation." ${MASTER_PROJECT})
 
 project(semiprof VERSION 1.0 LANGUAGES CXX)
 
-add_library(semiprof STATIC "${semiprof_SOURCE_DIR}/src/profiler.cpp")
-target_include_directories(semiprof PUBLIC 
-  $<BUILD_INTERFACE:${semiprof_SOURCE_DIR}/include/semiprof>
-  )
-target_compile_definitions(semiprof PRIVATE SEMIPROF) # Turn on profiler
+# Prevents target conflicts if project is nested multiple times.
+#
+if (NOT TARGET semiprof)
+    add_library(semiprof STATIC "${semiprof_SOURCE_DIR}/src/profiler.cpp")
+    target_include_directories(semiprof PUBLIC 
+      $<BUILD_INTERFACE:${semiprof_SOURCE_DIR}/include/semiprof>
+      )
+    target_compile_definitions(semiprof PRIVATE SEMIPROF) # Turn on profiler
+endif()
 
 if(SEMIPROF_WITH_EXAMPLES)
     add_subdirectory(examples)
