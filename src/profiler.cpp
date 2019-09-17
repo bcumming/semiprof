@@ -6,7 +6,7 @@
 #include <ostream>
 #include <thread>
 
-#include <semiprof.hpp>
+#include <semiprof/semiprof.hpp>
 
 namespace semiprof {
 
