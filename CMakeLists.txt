@@ -15,9 +15,9 @@ project(semiprof VERSION 1.0 LANGUAGES CXX)
 if (NOT TARGET semiprof)
     add_library(semiprof STATIC "${semiprof_SOURCE_DIR}/src/profiler.cpp")
     target_include_directories(semiprof PUBLIC 
-      $<BUILD_INTERFACE:${semiprof_SOURCE_DIR}/include/semiprof>
+      $<BUILD_INTERFACE:${semiprof_SOURCE_DIR}/include/>
       )
-    target_compile_definitions(semiprof PRIVATE SEMIPROF) # Turn on profiler
+    target_compile_definitions(semiprof PUBLIC SEMIPROF) # Turn on profiler
 endif()
 
 if(SEMIPROF_WITH_EXAMPLES)
