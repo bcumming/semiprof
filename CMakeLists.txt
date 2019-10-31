@@ -12,23 +12,25 @@ project(semiprof VERSION 1.0 LANGUAGES CXX)
 
 # Prevents target conflicts if project is nested multiple times.
 #
+set(INSTALLED_TARGETS_LIST "")
 if (NOT TARGET semiprof)
     add_library(semiprof STATIC "${semiprof_SOURCE_DIR}/src/profiler.cpp")
     target_include_directories(semiprof PUBLIC 
       $<BUILD_INTERFACE:${semiprof_SOURCE_DIR}/include>
      )
     target_compile_definitions(semiprof PUBLIC SEMIPROF) # Turn on profiler
+    set(INSTALLED_TARGETS_LIST "semiprof")
 endif()
 
 if(SEMIPROF_WITH_EXAMPLES)
     add_subdirectory(examples)
 endif()
 
-if(SEMIPROF_WITH_INSTALL)
+if(SEMIPROF_WITH_INSTALL AND INSTALLED_TARGETS_LIST)
     include(CMakePackageConfigHelpers)
     include(GNUInstallDirs)
 
-    install(TARGETS semiprof
+    install(TARGETS ${INSTALLED_TARGETS_LIST}
             EXPORT semiprof_targets 
             LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
             ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
