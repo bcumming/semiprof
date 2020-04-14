@@ -7,6 +7,8 @@ endif()
 
 option(SEMIPROF_WITH_EXAMPLES "Enable examples." ${MASTER_PROJECT})
 option(SEMIPROF_WITH_INSTALL "Enable installation." ${MASTER_PROJECT})
+option(BUILD_SHARED_LIBS "Build shared libraries." OFF)
+
 
 project(semiprof VERSION 1.0 LANGUAGES CXX)
 
@@ -14,7 +16,7 @@ project(semiprof VERSION 1.0 LANGUAGES CXX)
 #
 set(INSTALLED_TARGETS_LIST "")
 if (NOT TARGET semiprof)
-    add_library(semiprof STATIC "${semiprof_SOURCE_DIR}/src/profiler.cpp")
+    add_library(semiprof "${semiprof_SOURCE_DIR}/src/profiler.cpp")
     target_include_directories(semiprof PUBLIC 
       $<BUILD_INTERFACE:${semiprof_SOURCE_DIR}/include>
      )
